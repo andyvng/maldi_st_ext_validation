@@ -52,7 +52,6 @@ class MALDICNN(nn.Module):
                     x += identity
         return x
     
-
 class StrainTyper(L.LightningModule):
     def __init__(self, num_classes, 
                  model_name='MALDICNN', 
@@ -60,6 +59,7 @@ class StrainTyper(L.LightningModule):
                  weight=None,
                  binary=False):
         super().__init__()
+        self.save_hyperparameters()
         if model_name == 'MALDICNN':
             self.model = MALDICNN(num_classes, binary=binary)
         elif model_name == 'MALDIResNet':
@@ -116,9 +116,27 @@ class StrainTyper(L.LightningModule):
             predictions_df.to_csv(os.path.join(self.out_dir, 'predictions.csv'), header=True, index=False)
             prob_df.to_csv(os.path.join(self.out_dir, 'y_prob.csv'), header=True, index=False)
         return loss
+    
+    def predict_step(self, batch, batch_idx):
+        x, isolate_ids = batch
+        y_hat = self.model(x)
+        # Saving predictions for confusion matrix
+        if self.out_dir:
+            if not self.binary:
+                y_prob = torch.nn.functional.softmax(y_hat, dim=1)
+                y_pred = torch.argmax(y_prob, dim=1)
+            else:
+                y_prob = torch.sigmoid(y_hat)
+                y_pred = (y_prob > 0.5).float()
+            y_pred = y_pred.cpu().numpy()
+            prob_df = pd.DataFrame(y_prob.cpu().detach().numpy())
+            prob_df['isolate_id'] = isolate_ids
+            prob_df['y_pred_encoded'] = y_pred
+        return prob_df
 
     def configure_optimizers(self):
         optimize = torch.optim.Adam(self.parameters(), lr=1e-3)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimize, 
                                                          milestones=[50, 100], gamma=0.1)
         return [optimize], [scheduler]
+    

@@ -208,7 +208,7 @@ __marimo__/
 
 
 experiments/
-data/
 analysis/
 model_weights/
+outputs/
 .DS_Store

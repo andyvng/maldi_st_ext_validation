@@ -1,13 +1,13 @@
-install.packages(c("MALDIquant", "MALDIquantForeign"))
+install.packages(c("MALDIquant", "MALDIquantForeign", "optparse"), repos = "https://cloud.r-project.org")
 library("MALDIquant")
 library("MALDIquantForeign")
-library(optparse)
+library("optparse")
 
 option_list <- list(
     make_option(c("-i", "--input_fp"), type="character", default=NULL,
-                            help="Path to input CSV file", metavar="character")
+                            help="Path to input CSV file", metavar="character"),
     make_option(c("-o", "--outdir"), type="character", default=NULL,
-                            help="Output directory for preprocessed MALDI", metavar="character"),
+                            help="Output directory for preprocessed MALDI", metavar="character")
 )
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -18,6 +18,13 @@ if (is.null(opt$outdir) || is.null(opt$input_fp)) {
 }
 
 outdir <- opt$outdir
+if (!dir.exists(outdir)) {
+  dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+  message(sprintf("Created output directory: %s", outdir))
+} else {
+  message(sprintf("Output directory already exists: %s", outdir))
+}
+
 metadata_df <- read.csv(opt$input_fp)
 
 for (row in 1:nrow(metadata_df)){

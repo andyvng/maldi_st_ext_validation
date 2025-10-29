@@ -1,0 +1,53 @@
+# Pull base image
+FROM continuumio/miniconda3
+
+WORKDIR /maldist
+
+# Install Miniconda
+RUN /opt/conda/bin/conda init bash && \
+    /opt/conda/bin/conda config --add channels jolespin && \
+    /opt/conda/bin/conda config --add channels bioconda && \
+    /opt/conda/bin/conda config --add channels conda-forge && \
+    /opt/conda/bin/conda update conda -y && \
+    /opt/conda/bin/conda install -c conda-forge mamba -y && \
+    /opt/conda/bin/conda clean -afy
+
+# =================================
+
+# Add conda bin to path
+ENV PATH=/opt/conda/bin:$PATH
+
+# Create environment
+RUN mamba create -n maldist scikit-learn pandas seaborn numpy python=3.13.5 lightning && \
+    mamba clean -afy
+
+# Initialize conda in bash config files:
+SHELL ["/bin/bash","-l", "-c"]
+RUN conda init bash
+
+# Activate the environment and install additional pip packages
+RUN conda activate maldist &&\
+    pip3 install hydra-core --upgrade && \
+    pip3 install vector-quantize-pytorch
+
+# Deactivate the environment
+RUN conda deactivate
+
+# Set default shell to use conda environment
+SHELL ["conda", "run", "-n", "maldist", "/bin/bash", "-c"]
+
+# Copy source code
+COPY ./src /maldist/.
+
+# Create mounting point for data
+RUN mkdir /preprocessed_MALDI && mkdir /checkpoints
+RUN mkdir /data && touch /data/test_ids.csv
+
+# Set the entry point
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "maldist", \ 
+            "python", "/maldist/src/predict_outlier.py", \
+            "dataset.input_dir=/preprocessed_MALDI", \
+            "dataset.min_mz=4000", \
+            "dataset.predict_set_fp=/data/test_ids.csv", \
+            "model.name=MALDICNN", \
+            "trainer.accelerator=auto"]

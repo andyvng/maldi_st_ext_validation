@@ -1,0 +1,45 @@
+defaults:
+  - _self_
+
+dataset:
+  input_dir: ""
+  min_mz: 2000
+  max_mz: 20000
+  predict_set_fp: ""
+  
+model:
+  name: "MALDICNN"
+  use_class_weight: False
+
+checkpoint:
+  save_dir: "/Users/Andy/Dropbox/git_repos/maldi_typing/experiments/results/checkpoints/efaecium"
+  mode: "min"
+  monitor: "val_loss"
+  save_top_k: 1
+  remove: True
+
+log:
+  save_dir: "/Users/Andy/Dropbox/git_repos/maldi_typing/experiments/results/logs/efaecium"
+  project: "Test"
+  name: "Efaecium"
+
+trainer:
+  max_epochs: 100
+  batch_size: 32
+  accumulate_grad_batches: 2
+  num_nodes: 1
+  accelerator: "auto"
+  devices: 1
+  strategy: "auto"
+  logger:
+    is_use: False
+
+options:
+  run_ig: True
+  store_individual_attributions: False
+
+predict_out_dir: ""
+
+# hydra:
+#   run:
+#     dir: ../experiments/hydra_logs/${now:%Y-%m-%d_%H-%M-%S}
