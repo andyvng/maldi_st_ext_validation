@@ -25,7 +25,7 @@ export Efaecium_sts="[78,80,796,1424]"
 ```
 
 ### Download model checkpoints
-You can download the checkpoints for both the multiclass classifier and the outlier detector from [here](https://www.dropbox.com/scl/fo/d27kkmi3f2yite4b3cyk5/AMuRwT-5HnfE0E5JopscbRs?rlkey=l6i79wef8kypgtmdsi8lgw9xg&st=lg48in9u&dl=0). Please note that the files are approximately 220 GB in size and may take a while to download. The directory structure should appear as follows:
+You can download the checkpoints for both the multiclass classifier and the outlier detector from [here](https://www.dropbox.com/scl/fo/d27kkmi3f2yite4b3cyk5/AMuRwT-5HnfE0E5JopscbRs?rlkey=l6i79wef8kypgtmdsi8lgw9xg&st=fc9vxij0&dl=0). Please note that the files are approximately 220 GB in size and may take a while to download. If you cannot access the content, please send me a request and I will approve it. The directory structure should appear as follows:
 
 <p align="center">
   <img src="assets/tree.png" alt="Tree file" width="300">
