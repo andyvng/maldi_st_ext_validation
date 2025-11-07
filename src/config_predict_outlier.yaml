@@ -7,6 +7,7 @@ dataset:
   max_mz: 20000
   predict_set_fp: ""
   test_classes: ""
+  mask_zero: False
   
 model:
   name: "MALDICNN"
@@ -26,7 +27,7 @@ log:
 
 trainer:
   max_epochs: 100
-  batch_size: 32
+  batch_size: 128
   accumulate_grad_batches: 2
   num_nodes: 1
   accelerator: "auto"

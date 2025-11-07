@@ -6,6 +6,7 @@ checkpoints_dir=$3
 test_ids_abs_path=$4
 predict_out_dir=$5
 test_classes=$6
+mask_zero=${7:-False}
 
 if ! [[ "$run_id" =~ ^[0-9]+$ ]]; then
     echo "error: run_id must be an integer between 1 and 10" >&2
@@ -25,4 +26,5 @@ docker run --rm \
             maldist.outlier:latest \
             predict_out_dir=${predict_out_dir}/${run_id} \
             checkpoint.save_dir=/checkpoints/${run_id} \
-            dataset.test_classes=${test_classes}
+            dataset.test_classes=${test_classes} \
+            dataset.mask_zero=${mask_zero}

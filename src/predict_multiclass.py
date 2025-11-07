@@ -34,9 +34,10 @@ def main(cfg: DictConfig):
     test_dataset = MALDIPredictDataset(input_dir, 
                                        test_ids, 
                                        min_mz=cfg.dataset.min_mz,
-                                       max_mz=cfg.dataset.max_mz)
+                                       max_mz=cfg.dataset.max_mz,
+                                       mask_zero=cfg.dataset.mask_zero)
     test_dataloader = DataLoader(test_dataset, 
-                                 batch_size=len(test_dataset), 
+                                 batch_size=cfg.trainer.batch_size, 
                                  shuffle=False)
 
     # Find the saved checkpoint using glob
@@ -62,9 +63,11 @@ def main(cfg: DictConfig):
                         logger=None,
                         callbacks=[model_ckpt])
     
-    result_df = trainer.predict(model=model,
-                                dataloaders=test_dataloader,
-                                ckpt_path=model_save_ckpt)[0]
+    _ = trainer.predict(model=model,
+                        dataloaders=test_dataloader,
+                        ckpt_path=model_save_ckpt)[0]
+    # Combine all prediction dataframes
+    result_df = pd.concat(model.predict_result_dfs, axis=0, ignore_index=True)
     
     result_df['y_pred'] = result_df['y_pred_encoded'].apply(lambda y: label_dict_r[y])
 
@@ -73,7 +76,7 @@ def main(cfg: DictConfig):
     if 'isolate_id' in cols:
         cols.insert(0, cols.pop(cols.index('isolate_id')))
         result_df = result_df[cols]
-    result_df.to_csv(os.path.join(out_dir, "multiclass_prediction_results.csv"), index=False)
+    result_df.to_csv(os.path.join(out_dir, "results.csv"), index=False)
 
     return
 

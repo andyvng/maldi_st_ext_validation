@@ -72,6 +72,7 @@ class StrainTyper(L.LightningModule):
             self.loss = nn.CrossEntropyLoss(weight=weight)
         self.out_dir = out_dir
         self.binary = binary
+        self.predict_result_dfs = []
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -132,6 +133,7 @@ class StrainTyper(L.LightningModule):
             prob_df = pd.DataFrame(y_prob.cpu().detach().numpy())
             prob_df['isolate_id'] = isolate_ids
             prob_df['y_pred_encoded'] = y_pred
+            self.predict_result_dfs.append(prob_df)
         return prob_df
 
     def configure_optimizers(self):

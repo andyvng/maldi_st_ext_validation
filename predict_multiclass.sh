@@ -6,6 +6,7 @@ checkpoints_dir=$3
 test_ids_abs_path=$4
 predict_out_dir=$5
 test_classes=$6
+mask_zero=${7:-False}
 
 if ! [[ "$run_id" =~ ^[0-9]+$ ]]; then
     echo "error: run_id must be an integer between 1 and 10" >&2
@@ -17,6 +18,8 @@ if (( run_id < 1 || run_id > 10 )); then
     exit 1
 fi
 
+
+
 docker run --rm \
             -v $(pwd):/maldist \
             -v ${preprocessed_maldi}:/preprocessed_MALDI \
@@ -24,4 +27,5 @@ docker run --rm \
             -v ${test_ids_abs_path}:/data/test_ids.csv \
             maldist.multiclass:latest \
             checkpoint.save_dir=/checkpoints/${run_id} \
-            predict_out_dir=${predict_out_dir}/${run_id}
+            predict_out_dir=${predict_out_dir}/${run_id} \
+            dataset.mask_zero=${mask_zero}

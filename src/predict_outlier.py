@@ -22,7 +22,7 @@ class STEnsemble():
         self.label_map = label_map
         self.label_map_r = {value: key for key, value in label_map.items()}
 
-    def predict(self, batch, outdir):
+    def predict(self, batch):
         """
         Predict the class for input x using the ensemble of binary classifiers.
         """
@@ -43,8 +43,8 @@ class STEnsemble():
         y_pred = predict_df.apply(lambda row: assign_label(row, self.label_map, self.outlier_threshold), axis=1)
         predict_df['y_pred_encoded'] = y_pred
         predict_df['y_pred'] = predict_df['y_pred_encoded'].apply(lambda x: self.label_map_r.get(x, "other"))
-        predict_df.to_csv(os.path.join(outdir, 'ensemble_predictions.csv'), index=False)
-        return
+        # predict_df.to_csv(os.path.join(outdir, 'ensemble_predictions.csv'), index=False)
+        return predict_df
 
 @hydra.main(config_path=".", config_name="config_predict_outlier")
 def main(cfg: DictConfig):
@@ -60,9 +60,10 @@ def main(cfg: DictConfig):
     test_dataset = MALDIPredictDataset(input_dir, 
                                        test_ids, 
                                        min_mz=cfg.dataset.min_mz,
-                                       max_mz=cfg.dataset.max_mz,)
+                                       max_mz=cfg.dataset.max_mz,
+                                       mask_zero=cfg.dataset.mask_zero)
     test_dataloader = DataLoader(test_dataset, 
-                                 batch_size=len(test_dataset), 
+                                 batch_size=cfg.trainer.batch_size, 
                                  shuffle=False)
 
     # Load model into model_dict
@@ -87,8 +88,6 @@ def main(cfg: DictConfig):
 
         if cfg.model.name == 'MALDICNN':
             model = MALDICNN(num_classes=2, binary=True)
-        elif cfg.model.name == 'MALDIResNet':
-            model = MALDIResNet(num_classes=2, binary=True)
         else:
             raise ValueError(f'Model name not recognized: {cfg.model.name}')
 
@@ -108,8 +107,12 @@ def main(cfg: DictConfig):
                                 outlier_threshold=outlier_threshold,
                                 label_map=label_map)
     
+    dfs = []
     for _, batch in enumerate(test_dataloader):
-        ensemble_model.predict(batch, outdir=out_dir)
+        dfs.append(ensemble_model.predict(batch))
+
+    predict_df = pd.concat(dfs, ignore_index=True)
+    predict_df.to_csv(os.path.join(out_dir, 'results.csv'), index=False)
 
 if __name__ == "__main__":
     main()
